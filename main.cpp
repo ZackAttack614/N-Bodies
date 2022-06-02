@@ -1,6 +1,8 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <vector>
+#include <cstdlib>
 #include "body.cpp"
 
 using namespace std;
@@ -11,24 +13,33 @@ float get_sin_angle(body body_1, body body_2);
 float get_cos_angle(body body_1, body body_2);
 
 int main() {
-  body A( 100, 100, 100);
-  body B(-100, -50, 100);
-  const float dt = 0.0001;
-  float Fab;
+  vector<body> bodies;
+
   int time_steps = 0;
+  int num_bodies = 10;
+  const float dt = 0.0001;
+  float F;
+
+  for (int i = 0; i < num_bodies; i++)
+    bodies.push_back(body(rand() % 200 - 100, rand() % 200 - 100, 100));
 
   while (true) {
-    Fab = get_force(A, B);
-
-    A.update_velocity(get_cos_angle(A, B) * Fab * dt / A.mass, get_sin_angle(A, B) * Fab * dt / A.mass);
-    B.update_velocity(get_cos_angle(B, A) * Fab * dt / B.mass, get_sin_angle(B, A) * Fab * dt / B.mass);
-
-    A.update_position(dt);
-    B.update_position(dt);
-
     time_steps += 1;
-    if (time_steps % 1000 == 0)
-      cout << "Body A x position: " << A.x_position << " Time steps: " << time_steps << endl;
+
+    for (int i = 0; i < bodies.size(); i++) {
+      for (int j = i+1; j < bodies.size(); j++) {
+        F = get_force(bodies[i], bodies[j]);
+        bodies[i].update_velocity(get_cos_angle(bodies[i], bodies[j]) * F * dt / bodies[i].mass, get_sin_angle(bodies[i], bodies[j]) * F * dt / bodies[i].mass);
+        bodies[j].update_velocity(get_cos_angle(bodies[j], bodies[i]) * F * dt / bodies[j].mass, get_sin_angle(bodies[j], bodies[i]) * F * dt / bodies[j].mass);
+      }
+    }
+
+    for (int i = 0; i < bodies.size(); i++) {
+      bodies[0].update_position(dt);
+
+      if (time_steps % 1000 == 0)
+        cout << "Body A x position: " << bodies[0].x_position << " Time steps: " << time_steps << endl;
+    }
   }
 
   return 0;
